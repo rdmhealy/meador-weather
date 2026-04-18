@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meador Weather</title>
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--sun:#FF8C00;--sun-l:#FFB347;--sun-p:#FFF3E0;--text:#3D2000;--muted:#A0622A;--faint:#C8844A;--rain:#3A7BD5;--border:rgba(255,140,0,0.18);--shadow:rgba(255,140,0,0.14)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito',sans-serif;background:#FFF8EE;color:var(--text);min-height:100vh}
+
+/* TICKER */
+.ticker-wrap{background:#1a1a2e;overflow:hidden;height:38px;display:flex;align-items:center}
+.ticker-badge{background:#FF8C00;color:white;font-size:11px;font-weight:900;letter-spacing:.1em;padding:0 14px;height:100%;display:flex;align-items:center;white-space:nowrap;flex-shrink:0;gap:6px}
+.ticker-inner{overflow:hidden;flex:1;height:100%;position:relative}
+.ticker-track{display:flex;gap:0;animation:scroll 80s linear infinite;white-space:nowrap;height:100%;align-items:center}
+.ticker-wrap:hover .ticker-track{animation-play-state:paused}
+.ti{display:inline-flex;align-items:center;gap:8px;padding:0 22px;height:100%;border-right:1px solid rgba(255,255,255,0.08);font-size:12px;font-weight:700;color:white;flex-shrink:0}
+.ti-sport{font-size:10px;color:#FF8C00;font-weight:900;letter-spacing:.06em}
+.ti-score{color:#FFD700;font-weight:900;font-size:14px}
+.ti-live{color:#ff4444;font-size:10px;font-weight:900;animation:blink 1s ease-in-out infinite}
+.ti-dim{color:rgba(255,255,255,0.5)}
+@keyframes scroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* HEADER */
+.hdr{background:var(--sun);padding:0 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;box-shadow:0 4px 20px rgba(255,140,0,0.35);position:sticky;top:38px;z-index:100}
+.logo{font-family:'Pacifico',cursive;font-size:24px;color:white;padding:13px 0;text-shadow:2px 2px 0 rgba(0,0,0,0.15);white-space:nowrap}
+.hdr-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.tgl{background:rgba(255,255,255,0.25);border-radius:30px;padding:4px;display:flex}
+.tgl button{border:none;background:transparent;color:rgba(255,255,255,0.85);font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;padding:5px 14px;border-radius:24px;cursor:pointer;transition:all .2s}
+.tgl button.on{background:white;color:var(--sun)}
+.refresh-indicator{font-size:11px;color:rgba(255,255,255,0.75);font-weight:700;display:flex;align-items:center;gap:5px}
+.refresh-dot{width:7px;height:7px;border-radius:50%;background:#4ade80;animation:pulse-dot 2s ease-in-out infinite}
+@keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+
+/* TABS */
+.tabs{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:12px 20px;background:var(--sun-p);border-bottom:2px solid var(--border)}
+.tabs::-webkit-scrollbar{display:none}
+.tab{border:2px solid transparent;background:white;border-radius:30px;padding:8px 16px;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;color:var(--muted);cursor:pointer;white-space:nowrap;transition:all .2s;box-shadow:0 2px 8px var(--shadow)}
+.tab:hover{border-color:var(--sun-l);color:var(--sun)}
+.tab.on{background:var(--sun);color:white;border-color:var(--sun);box-shadow:0 4px 14px rgba(255,140,0,0.4)}
+
+.main{padding:20px;max-width:1100px;margin:0 auto}
+
+/* HERO */
+.hero{background:var(--sun);border-radius:28px;padding:30px;color:white;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px;margin-bottom:18px;box-shadow:0 8px 32px rgba(255,140,0,0.35);position:relative;overflow:hidden;animation:up .35s ease}
+.hero::before{content:'';position:absolute;right:-50px;top:-50px;width:240px;height:240px;background:rgba(255,255,255,0.1);border-radius:50%}
+.hero::after{content:'';position:absolute;right:80px;bottom:-70px;width:180px;height:180px;background:rgba(255,255,255,0.07);border-radius:50%}
+.h-city{font-size:14px;font-weight:700;opacity:.85;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+.h-temp{font-family:'Pacifico',cursive;font-size:86px;line-height:1}
+.h-feels{font-size:14px;opacity:.85;margin-top:4px;font-weight:600}
+.h-desc{font-size:20px;font-weight:800;margin-top:6px}
+.h-icon{font-size:86px;line-height:1;position:relative;z-index:1}
+.h-upd{font-size:11px;opacity:.7;margin-top:8px;font-weight:600;text-align:right;position:relative;z-index:1}
+
+/* PILLS */
+.pills{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px;animation:up .35s ease .05s both}
+.pill{background:white;border-radius:20px;padding:10px 16px;display:flex;align-items:center;gap:8px;box-shadow:0 2px 10px var(--shadow);border:2px solid var(--border)}
+.pi{font-size:18px}.pl{color:var(--muted);font-weight:600;font-size:11px;display:block}.pv{font-size:15px;font-weight:800}
+
+/* GRID */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;animation:up .35s ease .1s both}
+@media(max-width:660px){.grid{grid-template-columns:1fr}}
+.wide{grid-column:1/-1}
+.card{background:white;border-radius:20px;padding:20px;box-shadow:0 2px 14px var(--shadow);border:2px solid var(--border)}
+.ct{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:14px}
+
+/* HOURLY */
+.hscroll{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px}
+.hscroll::-webkit-scrollbar{display:none}
+.hitem{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:50px;background:var(--sun-p);border-radius:14px;padding:10px 6px}
+.ht{font-size:11px;font-weight:700;color:var(--muted)}.hi{font-size:20px}.htp{font-size:14px;font-weight:800}.hr{font-size:10px;font-weight:700;color:var(--rain)}
+
+/* 5-DAY */
+.drow{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);gap:8px}
+.drow:last-child{border-bottom:none}
+.dn{font-weight:800;font-size:13px;width:40px;flex-shrink:0}.dic{font-size:20px}
+.dd{font-size:12px;color:var(--muted);font-weight:600;flex:1;text-align:center}
+.drp{font-size:11px;color:var(--rain);font-weight:700;width:38px;text-align:right;flex-shrink:0}
+.dts{display:flex;gap:6px;align-items:baseline;flex-shrink:0}
+.dhi{font-weight:800;font-size:14px}.dlo{font-weight:600;font-size:13px;color:var(--faint)}
+
+/* UV */
+.uvbw{background:var(--sun-p);border-radius:8px;height:10px;margin:10px 0 6px;overflow:hidden}
+.uvb{height:10px;border-radius:8px}
+.uvlabs{display:flex;justify-content:space-between;font-size:11px;font-weight:700}
+.suntimes{display:flex;justify-content:space-around;margin-top:14px}
+.si{text-align:center}.siicon{font-size:28px}.sitime{font-size:15px;font-weight:800}.silbl{font-size:11px;color:var(--muted);font-weight:600}
+
+/* AQI */
+.aqibig{font-size:52px;font-family:'Pacifico',cursive;margin:4px 0;line-height:1}
+.aqiscale{display:flex;gap:3px;margin-top:10px}.aqiseg{height:8px;border-radius:4px;flex:1}
+
+/* PRECIP BARS */
+.pbars{display:flex;align-items:flex-end;gap:8px;height:90px;margin-top:8px}
+.pcol{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.pbw{width:100%;background:var(--sun-p);border-radius:6px 6px 0 0;flex:1;display:flex;align-items:flex-end;overflow:hidden}
+.pb{width:100%;background:var(--rain);border-radius:4px 4px 0 0}
+.plbl{font-size:10px;font-weight:700;color:var(--muted)}.pamt{font-size:10px;font-weight:800;color:var(--rain);min-height:15px}
+
+/* SCORES */
+.scores-section{margin-top:0;animation:up .35s ease .2s both}
+.stabs{display:flex;gap:8px;margin-bottom:14px}
+.stab{border:2px solid var(--border);background:white;border-radius:20px;padding:6px 16px;font-family:'Nunito',sans-serif;font-weight:700;font-size:12px;color:var(--muted);cursor:pointer;transition:all .2s}
+.stab.on{background:#1a1a2e;color:white;border-color:#1a1a2e}
+.sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.sc{background:white;border-radius:16px;padding:14px 16px;border:2px solid var(--border);box-shadow:0 2px 10px var(--shadow)}
+.sc-hd{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.sc-live{color:#ff4444;font-size:10px;font-weight:900;animation:blink 1s ease-in-out infinite}
+.sc-final{color:var(--muted);font-size:10px;font-weight:700}
+.sc-sched{color:var(--rain);font-size:10px;font-weight:700}
+.sc-row{display:flex;align-items:center;justify-content:space-between;padding:3px 0}
+.sc-team{font-size:13px;font-weight:800;color:var(--text)}
+.sc-num{font-size:19px;font-weight:900;font-family:'Pacifico',cursive}
+.win{color:var(--sun)}
+.no-games{text-align:center;padding:20px;color:var(--muted);font-size:13px;font-weight:700;grid-column:1/-1}
+
+/* NEXT REFRESH COUNTDOWN */
+.next-refresh{text-align:center;font-size:11px;color:var(--faint);font-weight:700;margin-top:10px;padding:8px;background:white;border-radius:10px;border:1px solid var(--border)}
+
+.loader{text-align:center;padding:60px 20px;color:var(--muted)}
+.spin{display:inline-block;width:44px;height:44px;border:4px solid var(--border);border-top-color:var(--sun);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker-badge">⚾🏈 <span>SCORES</span></div>
+  <div class="ticker-inner">
+    <div class="ticker-track" id="ticker"><div class="ti ti-dim">Loading scores...</div></div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="logo">☀️ Meador Weather 🌤️</div>
+  <div class="hdr-right">
+    <div class="refresh-indicator"><div class="refresh-dot"></div><span id="refresh-label">Live</span></div>
+    <div class="tgl">
+      <button id="bc" class="on" onclick="setUnit('C')">°C</button>
+      <button id="bf" onclick="setUnit('F')">°F</button>
+    </div>
+  </div>
+</div>
+
+<div class="tabs" id="tabs"></div>
+
+<div class="main">
+  <div id="content"><div class="loader"><div class="spin"></div><div style="font-weight:800;font-size:16px">Loading weather...</div></div></div>
+
+  <div class="card wide scores-section" style="margin-top:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+      <div class="ct" style="margin-bottom:0">🏟️ Sports scores</div>
+      <div class="stabs">
+        <button class="stab on" onclick="showSport('mlb')">⚾ MLB</button>
+        <button class="stab" onclick="showSport('nfl')">🏈 NFL</button>
+      </div>
+    </div>
+    <div class="sgrid" id="sgrid"><div class="no-games">Loading...</div></div>
+  </div>
+
+  <div class="next-refresh" id="next-refresh">Auto-refreshes every 10 minutes</div>
+</div>
+
+<script>
+/* ── CITIES ── */
+const CITIES = [
+  {id:'ireland',   name:'Ireland',    flag:'🇮🇪', lat:53.3498,  lon:-6.2603,   tz:'Europe/Dublin'},
+  {id:'maryland',  name:'Maryland',   flag:'🇺🇸', lat:39.0458,  lon:-76.6413,  tz:'America/New_York'},
+  {id:'sunnyvale', name:'Sunnyvale',  flag:'🇺🇸', lat:37.3688,  lon:-122.0363, tz:'America/Los_Angeles'},
+  {id:'menlopark', name:'Menlo Park', flag:'🇺🇸', lat:37.4530,  lon:-122.1817, tz:'America/Los_Angeles'},
+  {id:'nashville', name:'Nashville',  flag:'🇺🇸', lat:36.1627,  lon:-86.7816,  tz:'America/Chicago'},
+  {id:'la',        name:'Los Angeles',flag:'🇺🇸', lat:34.0522,  lon:-118.2437, tz:'America/Los_Angeles'},
+  {id:'madrid',    name:'Madrid',     flag:'🇪🇸', lat:40.4168,  lon:-3.7038,   tz:'Europe/Madrid'},
+];
+
+/* ── SPORTS DATA ── */
+const MLB = [
+  {id:'live1',status:'inprogress',home:'WSH',away:'SF',score:{WSH:6,SF:6},hn:'Washington Nationals',an:'San Francisco Giants',time:'Live'},
+  {id:'live2',status:'inprogress',home:'ATH',away:'CWS',score:{ATH:6,CWS:6},hn:'Athletics',an:'Chicago White Sox',time:'Live'},
+  {id:'live3',status:'inprogress',home:'MIA',away:'MIL',score:{MIA:2,MIL:5},hn:'Miami Marlins',an:'Milwaukee Brewers',time:'Live'},
+  {id:'live4',status:'inprogress',home:'CLE',away:'BAL',score:{CLE:0,BAL:0},hn:'Cleveland Guardians',an:'Baltimore Orioles',time:'Live'},
+  {id:'r1',status:'closed',home:'NYY',away:'KC',score:{NYY:13,KC:4},hn:'NY Yankees',an:'Kansas City Royals',time:'Final'},
+  {id:'r2',status:'closed',home:'CHC',away:'NYM',score:{CHC:4,NYM:2},hn:'Chicago Cubs',an:'NY Mets',time:'Final'},
+  {id:'r3',status:'closed',home:'LAD',away:'NYM',score:{LAD:8,NYM:2},hn:'LA Dodgers',an:'NY Mets',time:'Final'},
+  {id:'r4',status:'closed',home:'BOS',away:'DET',score:{BOS:1,DET:4},hn:'Boston Red Sox',an:'Detroit Tigers',time:'Final'},
+  {id:'r5',status:'closed',home:'MIN',away:'CIN',score:{MIN:4,CIN:5},hn:'Minnesota Twins',an:'Cincinnati Reds',time:'Final'},
+  {id:'s1',status:'scheduled',home:'HOU',away:'STL',hn:'Houston Astros',an:'St. Louis Cardinals',time:'12:10 AM'},
+  {id:'s2',status:'scheduled',home:'PHI',away:'ATL',hn:'Philadelphia Phillies',an:'Atlanta Braves',time:'12:15 AM'},
+  {id:'s3',status:'scheduled',home:'COL',away:'LAD',hn:'Colorado Rockies',an:'LA Dodgers',time:'1:10 AM'},
+  {id:'s4',status:'scheduled',home:'WSH',away:'SF',hn:'Washington Nationals',an:'San Francisco Giants',time:'Sun 6:35 PM'},
+  {id:'s5',status:'scheduled',home:'NYY',away:'KC',hn:'NY Yankees',an:'Kansas City Royals',time:'Sun 6:35 PM'},
+];
+const NFL = [
+  {id:'sb',status:'closed',home:'NE',away:'SEA',score:{NE:13,SEA:29},hn:'New England Patriots',an:'Seattle Seahawks',time:'Super Bowl LX'},
+  {id:'nfc',status:'closed',home:'SEA',away:'LA',score:{SEA:31,LA:27},hn:'Seattle Seahawks',an:'LA Rams',time:'NFC Championship'},
+  {id:'afc',status:'closed',home:'DEN',away:'NE',score:{DEN:7,NE:10},hn:'Denver Broncos',an:'New England Patriots',time:'AFC Championship'},
+  {id:'d1',status:'closed',home:'SEA',away:'SF',score:{SEA:41,SF:6},hn:'Seattle Seahawks',an:'San Francisco 49ers',time:'Divisional'},
+  {id:'d2',status:'closed',home:'DEN',away:'BUF',score:{DEN:33,BUF:30},hn:'Denver Broncos',an:'Buffalo Bills',time:'Divisional'},
+  {id:'d3',status:'closed',home:'NE',away:'HOU',score:{NE:28,HOU:16},hn:'New England Patriots',an:'Houston Texans',time:'Wild Card'},
+  {id:'d4',status:'closed',home:'JAC',away:'BUF',score:{JAC:24,BUF:27},hn:'Jacksonville Jaguars',an:'Buffalo Bills',time:'Wild Card'},
+  {id:'d5',status:'closed',home:'LV',away:'KC',score:{LV:14,KC:12},hn:'Las Vegas Raiders',an:'Kansas City Chiefs',time:'Wk 18 Final'},
+  {id:'d6',status:'closed',home:'BUF',away:'NYJ',score:{BUF:35,NYJ:8},hn:'Buffalo Bills',an:'New York Jets',time:'Wk 18 Final'},
+  {id:'d7',status:'closed',home:'PIT',away:'BAL',score:{PIT:26,BAL:24},hn:'Pittsburgh Steelers',an:'Baltimore Ravens',time:'Wk 18 Final'},
+];
+
+const ICO={0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌧️',61:'🌦️',63:'🌧️',65:'🌧️',71:'🌨️',73:'❄️',75:'❄️',77:'❄️',80:'🌦️',81:'🌧️',82:'🌧️',85:'❄️',86:'❄️',95:'⛈️',96:'⛈️',99:'⛈️'};
+const TXT={0:'Clear sky',1:'Mainly clear',2:'Partly cloudy',3:'Overcast',45:'Foggy',48:'Icy fog',51:'Light drizzle',53:'Drizzle',55:'Heavy drizzle',61:'Light rain',63:'Rain',65:'Heavy rain',71:'Light snow',73:'Snow',75:'Heavy snow',77:'Snow grains',80:'Light showers',81:'Showers',82:'Heavy showers',85:'Snow showers',86:'Heavy snow showers',95:'Thunderstorm',96:'Thunderstorm',99:'Thunderstorm'};
+const AQI_L=['Good','Fair','Moderate','Poor','Very Poor'];
+const AQI_C=['#4CAF50','#CDDC39','#FF9800','#F44336','#9C27B0'];
+const DN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+let unit='C', city=CITIES[0], cache={}, currentSport='mlb';
+let refreshTimer=null, countdownTimer=null, secondsLeft=600;
+
+/* ── UNITS ── */
+const toF=c=>Math.round(c*9/5+32);
+const D=c=>unit==='C'?Math.round(c)+'°C':toF(c)+'°F';
+const N=c=>unit==='C'?Math.round(c):toF(c);
+function uvC(v){return v<=2?'#4CAF50':v<=5?'#CDDC39':v<=7?'#FF9800':v<=10?'#F44336':'#9C27B0'}
+function uvL(v){return v<=2?'Low':v<=5?'Moderate':v<=7?'High':v<=10?'Very High':'Extreme'}
+function setUnit(u){unit=u;document.getElementById('bc').classList.toggle('on',u==='C');document.getElementById('bf').classList.toggle('on',u==='F');render();}
+
+/* ── TICKER ── */
+function buildTicker(){
+  const live=MLB.filter(g=>g.status==='inprogress');
+  const recent=MLB.filter(g=>g.status==='closed').slice(0,5);
+  const nfl=NFL.slice(0,5);
+  const items=[...live,...recent,...nfl,...live,...recent,...nfl];
+  document.getElementById('ticker').innerHTML=items.map(g=>{
+    const isNFL=NFL.some(n=>n.id===g.id);
+    const sp=isNFL?'🏈 NFL':'⚾ MLB';
+    if(g.status==='scheduled') return `<div class="ti"><span class="ti-sport">${sp}</span><span>${g.an} @ ${g.hn}</span><span class="ti-dim">${g.time}</span></div>`;
+    const aw=g.score&&g.score[g.away]>g.score[g.home];
+    const hw=g.score&&g.score[g.home]>g.score[g.away];
+    return `<div class="ti"><span class="ti-sport">${sp}</span>${g.status==='inprogress'?'<span class="ti-live">●</span>':''}<span class="${aw?'win':''}">${g.an}</span><span class="ti-score ${aw?'win':''}">${g.score[g.away]}</span><span class="ti-dim">–</span><span class="ti-score ${hw?'win':''}">${g.score[g.home]}</span><span class="${hw?'win':''}">${g.hn}</span><span class="ti-dim">${g.time}</span></div>`;
+  }).join('');
+}
+
+/* ── SCORES PANEL ── */
+function showSport(sp){
+  currentSport=sp;
+  document.querySelectorAll('.stab').forEach(b=>b.classList.toggle('on',b.textContent.toLowerCase().includes(sp)));
+  const games=sp==='mlb'?MLB:NFL;
+  document.getElementById('sgrid').innerHTML=games.map(g=>{
+    if(g.status==='scheduled') return `<div class="sc"><div class="sc-hd">${sp==='nfl'?'🏈 NFL':'⚾ MLB'}<span class="sc-sched">🕐 ${g.time}</span></div><div class="sc-row"><div class="sc-team">${g.an}</div></div><div class="sc-row"><div class="sc-team" style="color:var(--muted)">@ ${g.hn}</div></div></div>`;
+    const aw=g.score[g.away]>g.score[g.home];
+    const hw=g.score[g.home]>g.score[g.away];
+    return `<div class="sc"><div class="sc-hd">${sp==='nfl'?'🏈 NFL':'⚾ MLB'}${g.status==='inprogress'?'<span class="sc-live">● LIVE</span>':`<span class="sc-final">${g.time}</span>`}</div><div class="sc-row"><div class="sc-team ${aw?'win':''}">${g.an}</div><div class="sc-num ${aw?'win':''}">${g.score[g.away]}</div></div><div class="sc-row"><div class="sc-team ${hw?'win':''}">${g.hn}</div><div class="sc-num ${hw?'win':''}">${g.score[g.home]}</div></div></div>`;
+  }).join('');
+}
+
+/* ── TABS ── */
+function buildTabs(){
+  document.getElementById('tabs').innerHTML=CITIES.map(c=>`<button class="tab${c.id===city.id?' on':''}" onclick="pick('${c.id}')">${c.flag} ${c.name}</button>`).join('');
+}
+function pick(id){city=CITIES.find(c=>c.id===id);buildTabs();render();}
+
+/* ── WEATHER FETCH ── */
+async function fetchData(c){
+  if(cache[c.id])return cache[c.id];
+  const w=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}&current=temperature_2m,apparent_temperature,weathercode,windspeed_10m,windgusts_10m,relativehumidity_2m,precipitation,uv_index&hourly=temperature_2m,weathercode,precipitation_probability,precipitation&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,sunrise,sunset,uv_index_max,windspeed_10m_max&wind_speed_unit=kmh&forecast_days=6&timezone=${encodeURIComponent(c.tz)}`).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json()});
+  let aqi=null,aqiIdx=null;
+  try{const a=await fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${c.lat}&longitude=${c.lon}&current=european_aqi&timezone=${encodeURIComponent(c.tz)}`).then(r=>r.json());aqi=a?.current?.european_aqi??null;if(aqi!=null)aqiIdx=Math.min(4,Math.floor(aqi/25));}catch(e){}
+  cache[c.id]={w,aqi,aqiIdx};return cache[c.id];
+}
+
+async function render(){
+  const el=document.getElementById('content');
+  el.innerHTML=`<div class="loader"><div class="spin"></div><div style="font-weight:800;font-size:16px">Loading ${city.name}...</div></div>`;
+  try{
+    const {w,aqi,aqiIdx}=await fetchData(city);
+    const cur=w.current,d=w.daily,h=w.hourly;
+    const now=new Date();
+    const hi=Math.max(0,(h.time.findIndex(t=>new Date(t)>now)||1)-1);
+    const sunrise=d.sunrise[0]?new Date(d.sunrise[0]).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):'--';
+    const sunset=d.sunset[0]?new Date(d.sunset[0]).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):'--';
+    const uvMax=d.uv_index_max[0]??0;
+    const days=[0,1,2,3,4].map(i=>({name:i===0?'Today':DN[new Date(d.time[i]+'T12:00:00').getDay()],code:d.weathercode[i],hi:d.temperature_2m_max[i],lo:d.temperature_2m_min[i],rain:d.precipitation_probability_max[i]??0,precip:d.precipitation_sum[i]??0,desc:TXT[d.weathercode[i]]??''}));
+    const hours=Array.from({length:14},(_,i)=>{const idx=hi+i;const t=h.time[idx]?new Date(h.time[idx]):null;return{lbl:i===0?'Now':(t?t.toLocaleTimeString([],{hour:'numeric',hour12:true}):'--'),code:h.weathercode[idx],temp:h.temperature_2m[idx],rain:h.precipitation_probability[idx]??0};});
+    const maxP=Math.max(...days.map(d=>d.precip),1);
+
+    el.innerHTML=`
+<div class="hero"><div>
+  <div class="h-city">${city.flag} ${city.name}</div>
+  <div class="h-temp">${N(cur.temperature_2m)}°</div>
+  <div class="h-feels">Feels like ${D(cur.apparent_temperature)}</div>
+  <div class="h-desc">${TXT[cur.weathercode]??''}</div>
+</div><div>
+  <div class="h-icon">${ICO[cur.weathercode]??'🌡️'}</div>
+  <div class="h-upd">Updated ${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>
+</div></div>
+
+<div class="pills">
+  <div class="pill"><span class="pi">💨</span><div><span class="pl">Wind</span><span class="pv">${Math.round(cur.windspeed_10m)} km/h</span></div></div>
+  <div class="pill"><span class="pi">🌪️</span><div><span class="pl">Gusts</span><span class="pv">${Math.round(cur.windgusts_10m)} km/h</span></div></div>
+  <div class="pill"><span class="pi">💧</span><div><span class="pl">Humidity</span><span class="pv">${Math.round(cur.relativehumidity_2m)}%</span></div></div>
+  <div class="pill"><span class="pi">🌧️</span><div><span class="pl">Precip</span><span class="pv">${cur.precipitation.toFixed(1)} mm</span></div></div>
+  <div class="pill"><span class="pi">🔆</span><div><span class="pl">UV Index</span><span class="pv" style="color:${uvC(cur.uv_index)}">${Math.round(cur.uv_index)} · ${uvL(cur.uv_index)}</span></div></div>
+  ${aqi!=null?`<div class="pill"><span class="pi">🌬️</span><div><span class="pl">Air Quality</span><span class="pv" style="color:${AQI_C[aqiIdx]}">${AQI_L[aqiIdx]}</span></div></div>`:''}
+</div>
+
+<div class="grid">
+  <div class="card"><div class="ct">🕐 Hourly forecast</div>
+    <div class="hscroll">${hours.map(h=>`<div class="hitem"><div class="ht">${h.lbl}</div><div class="hi">${ICO[h.code]??'🌡️'}</div><div class="htp">${D(h.temp)}</div><div class="hr">${h.rain>0?h.rain+'%':''}</div></div>`).join('')}</div>
+  </div>
+  <div class="card"><div class="ct">📅 5-day forecast</div>
+    ${days.map(d=>`<div class="drow"><div class="dn">${d.name}</div><div class="dic">${ICO[d.code]??'🌡️'}</div><div class="dd">${d.desc}</div><div class="drp">${d.rain>=10?'💧'+d.rain+'%':''}</div><div class="dts"><div class="dhi">${D(d.hi)}</div><div class="dlo">${D(d.lo)}</div></div></div>`).join('')}
+  </div>
+</div>
+
+<div class="grid">
+  <div class="card"><div class="ct">🔆 UV & sun</div>
+    <div style="font-size:42px;font-family:'Pacifico',cursive;color:${uvC(uvMax)}">${Math.round(uvMax)}</div>
+    <div style="font-size:14px;font-weight:700;color:${uvC(uvMax)};margin-bottom:8px">${uvL(uvMax)} · max today</div>
+    <div class="uvbw"><div class="uvb" style="width:${Math.min(100,(uvMax/12)*100).toFixed(0)}%;background:${uvC(uvMax)}"></div></div>
+    <div class="uvlabs"><span style="color:#4CAF50">Low</span><span style="color:#FF9800">High</span><span style="color:#9C27B0">Extreme</span></div>
+    <div class="suntimes">
+      <div class="si"><div class="siicon">🌅</div><div class="sitime">${sunrise}</div><div class="silbl">Sunrise</div></div>
+      <div class="si"><div class="siicon">🌇</div><div class="sitime">${sunset}</div><div class="silbl">Sunset</div></div>
+    </div>
+  </div>
+  ${aqi!=null?`<div class="card"><div class="ct">🌬️ Air quality · EU AQI</div>
+    <div class="aqibig" style="color:${AQI_C[aqiIdx]}">${Math.round(aqi)}</div>
+    <div style="font-size:16px;font-weight:800;color:${AQI_C[aqiIdx]};margin-bottom:12px">${AQI_L[aqiIdx]}</div>
+    <div class="aqiscale">${AQI_C.map((col,i)=>`<div class="aqiseg" style="background:${col};opacity:${aqiIdx===i?1:0.3}"></div>`).join('')}</div>
+    <div style="display:flex;justify-content:space-between;font-size:10px;font-weight:700;color:var(--faint);margin-top:5px">${AQI_L.map(l=>`<span>${l}</span>`).join('')}</div>
+  </div>`:`<div class="card"><div class="ct">🌧️ Rainfall · 5 days</div>
+    <div class="pbars">${days.map(d=>`<div class="pcol"><div class="pamt">${d.precip>0?d.precip.toFixed(1)+'mm':''}</div><div class="pbw"><div class="pb" style="height:${Math.round((d.precip/maxP)*100)}%"></div></div><div class="plbl">${d.name.slice(0,3)}</div></div>`).join('')}</div>
+  </div>`}
+</div>
+
+<div class="card wide" style="margin-bottom:16px;animation:up .35s ease .15s both">
+  <div class="ct">🌧️ Rainfall forecast · mm per day</div>
+  <div class="pbars" style="height:110px">${days.map(d=>`<div class="pcol"><div class="pamt">${d.precip>0?d.precip.toFixed(1)+'mm':''}</div><div class="pbw"><div class="pb" style="height:${Math.round((d.precip/maxP)*100)}%"></div></div><div class="plbl">${d.name}</div></div>`).join('')}</div>
+  <div style="font-size:11px;color:var(--faint);font-weight:700;margin-top:10px;text-align:center">weather: open-meteo.com · free &amp; open source</div>
+</div>`;
+  }catch(e){
+    el.innerHTML=`<div class="loader"><div style="font-size:48px">😕</div><div style="font-weight:800;font-size:18px;margin-top:14px">Couldn't load weather</div><div style="color:var(--muted);margin-top:8px;font-size:14px">${e.message}</div><div style="margin-top:12px;font-size:13px;color:var(--faint);max-width:380px;line-height:1.6">Open this file in your browser (not from a chat app) for live data to work.</div><button onclick="cache={};render()" style="margin-top:16px;background:var(--sun);color:white;border:none;border-radius:20px;padding:10px 24px;font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;cursor:pointer">↺ Try again</button></div>`;
+  }
+}
+
+/* ── AUTO REFRESH ── */
+function startCountdown(){
+  secondsLeft=600;
+  clearInterval(countdownTimer);
+  countdownTimer=setInterval(()=>{
+    secondsLeft--;
+    const m=Math.floor(secondsLeft/60);
+    const s=secondsLeft%60;
+    const el=document.getElementById('next-refresh');
+    const rl=document.getElementById('refresh-label');
+    if(el) el.textContent=`Auto-refreshes in ${m}:${s.toString().padStart(2,'0')}`;
+    if(rl) rl.textContent='Live';
+    if(secondsLeft<=0){
+      clearInterval(countdownTimer);
+      cache={};
+      render();
+      startCountdown();
+    }
+  },1000);
+}
+
+/* ── INIT ── */
+buildTicker();
+showSport('mlb');
+buildTabs();
+render();
+startCountdown();
+</script>
+</body>
+</html>
